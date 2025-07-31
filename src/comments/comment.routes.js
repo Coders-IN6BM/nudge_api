@@ -1,5 +1,5 @@
 import { Router } from "express"
-import { addComment, getUserComments, deleteComment, updateComment } from "../comment/comment.controller.js"
+import { addComment, getUserComments, deleteComment, updateComment } from "./comment.controller.js"
 import { addCommentValidator , getCommentValidator, deleteCommentValidator, updateCommentValidator} from "../middlewares/comment-validator.js"
 
 const router = Router()

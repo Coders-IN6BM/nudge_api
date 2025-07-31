@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from "url";
 
+//Admin
 export const getUserById = async (req, res) => {
     try{
         const { uid } = req.params;
@@ -30,6 +31,7 @@ export const getUserById = async (req, res) => {
     }
 }
 
+// ADMIN
 export const getUsers = async (req, res) => {
     try{
         const { limite = 5, desde = 0 } = req.query
@@ -56,57 +58,82 @@ export const getUsers = async (req, res) => {
     }
 }
 
-
+// All 
 export const updatePassword = async (req, res) => {
     try{
-        const { uid } = req.params
-        const { newPassword } = req.body
+        const uid = req.usuario._id; // Obtener del token JWT
+        const { currentPassword, newPassword } = req.body;
 
-        const user = await User.findById(uid)
+        const user = await User.findById(uid);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Usuario no encontrado"
+            });
+        }
 
-        const matchOldAndNewPassword = await verify(user.password, newPassword)
+        // Verificar la contraseña actual
+        const isCurrentPasswordValid = await verify(user.password, currentPassword);
+        if (!isCurrentPasswordValid) {
+            return res.status(400).json({
+                success: false,
+                message: "Contraseña actual incorrecta"
+            });
+        }
 
+        // Verificar que la nueva contraseña no sea igual a la actual
+        const matchOldAndNewPassword = await verify(user.password, newPassword);
         if(matchOldAndNewPassword){
             return res.status(400).json({
                 success: false,
                 message: "La nueva contraseña no puede ser igual a la anterior"
-            })
+            });
         }
 
-        const encryptedPassword = await hash(newPassword)
+        const encryptedPassword = await hash(newPassword);
 
-        await User.findByIdAndUpdate(uid, {password: encryptedPassword}, {new: true})
+        await User.findByIdAndUpdate(uid, {password: encryptedPassword}, {new: true});
 
         return res.status(200).json({
             success: true,
-            message: "Contraseña actualizada",
-        })
+            message: "Contraseña actualizada exitosamente",
+        });
 
     }catch(err){
         return res.status(500).json({
             success: false,
             message: "Error al actualizar contraseña",
             error: err.message
-        })
+        });
     }
 }
 
 export const updateUser = async (req, res) => {
     try {
-        const { uid } = req.params;
-        const  data  = req.body;
+        const uid = req.usuario._id; // Obtener del token JWT
+        const data = req.body;
 
-        const user = await User.findByIdAndUpdate(uid, data, { new: true });
+        // No permitir actualizar campos sensibles
+        const { password, role, status, ...allowedData } = data;
+
+        const user = await User.findByIdAndUpdate(uid, allowedData, { new: true });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Usuario no encontrado"
+            });
+        }
 
         res.status(200).json({
             success: true,
-            msg: 'Usuario Actualizado',
+            message: 'Usuario actualizado exitosamente',
             user,
         });
     } catch (err) {
         res.status(500).json({
             success: false,
-            msg: 'Error al actualizar usuario',
+            message: 'Error al actualizar usuario',
             error: err.message
         });
     }

@@ -1,12 +1,12 @@
 import { body , param } from "express-validator";
-import { emailExist, userNameExist , uidExist } from "../helpers/db-validators.js";
+import { emailExists, usernameExists , uidExist } from "../helpers/db-validators.js";
 import { validationsFields } from "./fields-validator.js";
 import { catchErrors } from "./catch-errors.js";
 
 export const registerValidator = [
     body("name").not().isEmpty().withMessage("Name is required"),
-    body("userName").not().isEmpty().withMessage("userName is required").custom(userNameExist),
-    body("email").not().isEmpty().withMessage("Email is required").isEmail().withMessage("Invalid Email").custom(emailExist),
+    body("userName").not().isEmpty().withMessage("userName is required").custom(usernameExists),
+    body("email").not().isEmpty().withMessage("Email is required").isEmail().withMessage("Invalid Email").custom(emailExists),
     body("password").isStrongPassword({
         minLength: 8,
         minLowercase: 1,
@@ -39,20 +39,26 @@ export const deleteUserValidator = [
 ];
 
 export const updatePasswordValidator = [
-    param("uid").isMongoId().withMessage("Not a valid MongoDB ID").custom(uidExist),
+    body("currentPassword").notEmpty().withMessage("La contraseña actual es requerida"),
     body("newPassword").isLength({min: 8}).isStrongPassword({
         minLength: 8,
         minLowercase: 1,
         minUppercase: 1,
         minNumbers: 1,
         minSymbols: 1
-    }).withMessage("The password must contain at least 8 characters"),
+    }).withMessage("La nueva contraseña debe contener al menos 8 caracteres, 1 mayúscula, 1 minúscula, 1 número y 1 símbolo"),
     validationsFields,
     catchErrors
 ];
 
 export const updateUserValidator = [
-    param("uid", "Not a valid ID").isMongoId().custom(uidExist),
+    body("name").optional().isLength({min: 2}).withMessage("El nombre debe tener al menos 2 caracteres"),
+    body("surname").optional().isLength({min: 2}).withMessage("El apellido debe tener al menos 2 caracteres"),
+    body("email").optional().isEmail().withMessage("Email inválido"),
+    body("userName").optional().isLength({min: 3}).withMessage("El username debe tener al menos 3 caracteres"),
+    body("password").not().exists().withMessage("No se puede actualizar la contraseña por esta ruta"),
+    body("role").not().exists().withMessage("No se puede actualizar el rol por esta ruta"),
+    body("status").not().exists().withMessage("No se puede actualizar el status por esta ruta"),
     validationsFields,
     catchErrors
 ];
