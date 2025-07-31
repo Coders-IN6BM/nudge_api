@@ -1,19 +1,31 @@
 import Publication from "../publication/publication.model.js";
 import User from "../user/user.model.js";
 
+
 export const registerPublication = async (req, res) => {
     try {
-        const data = req.body;
-        const publication = await Publication.create(data);
+        const { title, category, publicationContent } = req.body;
+        const owner = req.usuario._id; // Obtener del token JWT
 
-        await User.findByIdAndUpdate(data.owner, { $push: { publications: publication._id } }, { new: true });
+        const publicationData = {
+            title,
+            category,
+            publicationContent,
+            owner
+        };
+
+        const publication = await Publication.create(publicationData);
+
+        await User.findByIdAndUpdate(owner, { $push: { publications: publication._id } }, { new: true });
 
         return res.status(201).json({
+            success: true,
             message: "Publication has been created",
             publication
         });
     } catch (error) {
         return res.status(500).json({
+            success: false,
             message: "Publication creation failed",
             error: error.message
         });
@@ -86,7 +98,7 @@ export const getPublication = async (req, res) => {
 export const deletePublication = async (req, res) => {
     try {
         const { uid } = req.params;
-        const { uidOwner } = req.body; 
+        const uidOwner = req.usuario._id.toString(); // Obtener del token JWT
 
         const publication = await Publication.findById(uid);
         if (!publication) {
@@ -124,8 +136,15 @@ export const deletePublication = async (req, res) => {
 
 export const updatePublication = async (req, res) => {
     try {
-        const { uid } = req.params;
-        const { uidOwner, title, category, publicationContent } = req.body;
+        const { uid, title, category, publicationContent } = req.body;
+        const uidOwner = req.usuario._id.toString(); // Obtener del token JWT
+
+        if (!uid) {
+            return res.status(400).json({
+                success: false,
+                message: "Publication ID is required in body"
+            });
+        }
 
         const publication = await Publication.findById(uid);
         if (!publication) {

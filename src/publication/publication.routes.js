@@ -27,7 +27,7 @@ router.patch(
 );
 
 router.patch(
-    "/updatePublications/:uid",
+    "/updatePublications/",
     updatePublicationsValidator,
     updatePublication
 );
