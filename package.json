@@ -13,6 +13,8 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "2": "^3.0.0",
+    "argon": "^2.0.21",
     "argon2": "^0.43.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
@@ -21,6 +23,7 @@
     "express-validator": "^7.2.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.18.0",
     "mongoose": "^8.17.0",
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
