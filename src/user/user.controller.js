@@ -138,3 +138,45 @@ export const updateUser = async (req, res) => {
         });
     }
 }
+
+export const getCurrentUserProfile = async (req, res) => {
+    try {
+        // Verificar si req.usuario existe
+        if (!req.usuario) {
+            return res.status(401).json({
+                success: false,
+                message: "Usuario no autenticado - req.usuario no existe"
+            });
+        }
+
+        // Verificar si req.usuario tiene _id
+        if (!req.usuario._id) {
+            return res.status(401).json({
+                success: false,
+                message: "Usuario no autenticado - req.usuario._id no existe"
+            });
+        }
+
+        const uid = req.usuario._id; // Obtener del token JWT
+        const user = await User.findById(uid);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Usuario no encontrado"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            user
+        });
+
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: "Error al obtener el perfil",
+            error: err.message
+        });
+    }
+};

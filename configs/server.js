@@ -5,6 +5,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import { dbConnection } from "./mongo.js";
 import { crearAdmin } from "./createAdminDefault.js";
+import { swaggerDocs, swaggerUi } from "./swagger.js";
 import authRoutes from "../src/auth/auth.routes.js";
 import userRoutes from "../src/user/user.routes.js";
 import publicationRoutes from "../src/publication/publication.routes.js";
@@ -24,16 +25,25 @@ const middlewares = (app) => {
 };
 
 const routes = (app) => {
+  // Documentación Swagger
+  app.use("/nudge/v1/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs, {
+    customSiteTitle: "Nudge API Documentation",
+    customCss: '.swagger-ui .topbar { display: none }',
+    customCssUrl: '/swagger-ui-theme.css'
+  }));
+  
   app.use("/nudge/v1/auth", authRoutes);
   app.use("/nudge/v1/users", userRoutes);
   app.use("/nudge/v1/categories", categoryRoutes);
   app.use("/nudge/v1/publications", publicationRoutes);
   app.use("/nudge/v1/comments", commentRoutes);
+  
   app.get("/nudge/v1/health", (req, res) => {
     res.status(200).json({
       success: true,
       message: "Nudge API is running successfully",
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      documentation: "/nudge/v1/api-docs"
     });
   });
 };
